@@ -17,9 +17,9 @@ object lwjgl_test {
   var look_y = 0.0f
   var look_z = 0.0f
   
-  var eye_x = 0.5f
-  var eye_y = 1.0f
-  var eye_z = -0.5f
+  var eye_x = 0.0f
+  var eye_y = 0.0f
+  var eye_z = 1.5f
 
   def main(args: Array[String]): Unit = {
     run
@@ -44,22 +44,28 @@ object lwjgl_test {
   def key_events() = {
     import Keyboard._
     Keyboard.enableRepeatEvents(true)
-    if (isKeyDown(KEY_ESCAPE) || Display.isCloseRequested()) {
+    if (isKeyDown(KEY_ESCAPE) || Display.isCloseRequested) {
       finished = true
     }
     while (Keyboard.next()) {
     	if (getEventKeyState()) {
 			if (isKeyDown(KEY_W)) {
-			  look_z += 0.05f
+			  eye_z += 0.05f
 			}
 			if (isKeyDown(KEY_S)) {
-			  look_z -= 0.05f
+			  eye_z -= 0.05f
 			}
 			if (isKeyDown(KEY_A)) {
-			  look_x -= 0.05f
+			  eye_x -= 0.05f
 			}
 			if (isKeyDown(KEY_D)) {
-			  look_x += 0.05f
+			  eye_x += 0.05f
+			}
+			if (isKeyDown(KEY_Z)) {
+			  eye_y -= 0.05f
+			}
+			if (isKeyDown(KEY_X)) {
+			  eye_y += 0.05f
 			}
 			if (isKeyDown(KEY_Q)) {
 			  rotation = (rotation - 0.05f) % 360.0f
@@ -80,7 +86,7 @@ object lwjgl_test {
 	printf("v:%f",v)
 	glMatrixMode(GL_PROJECTION)
 	glLoadIdentity
-	//glFrustum(-v,v,-10,10,0,10)
+	glFrustum(-v,v,-1,1,1,100)
 	glMatrixMode(GL_MODELVIEW)
   }
 
@@ -114,7 +120,7 @@ object lwjgl_test {
     eye.m03 = eye_x
     eye.m13 = eye_y
     eye.m23 = eye_z
-    eye.rotate(rotation.toRadians, new Vector3f(0.0f, 1.0f, 0.0f))
+    eye.rotate(rotation, new Vector3f(0.0f, 1.0f, 0.0f))
     gluLookAt(eye.m03, eye.m13, eye.m23, look_x, look_y, look_z, 0.0f, 1.0f, 0.0f)
 
     if (drawAxes)
