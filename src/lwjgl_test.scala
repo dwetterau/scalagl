@@ -6,6 +6,7 @@ import util.vector.Matrix4f
 import util.vector.Vector3f
 import input._
 import math._
+import org.lwjgl.util.glu.Sphere
 
 object lwjgl_test {
 
@@ -146,8 +147,21 @@ object lwjgl_test {
     	
     	glColor3f(0.0f, 0.0f, 1.0f)
     	glVertex3f(-0.25f, -0.25f, 0.0f)
-    glEnd()
+    glEnd
     glEnable(GL_LIGHTING)
+    drawSphere
+  }
+  
+  def drawSphere {
+    glPushMatrix()
+    glTranslatef(1.0f, 0.0f, 0.0f);
+	val sphere = new Sphere;
+	sphere.setDrawStyle(GLU_FILL);
+	sphere.setNormals(GLU_SMOOTH);
+	val quality = 25;
+	val radius = .2f
+	sphere.draw(radius, quality, quality);
+    glPopMatrix()
   }
 
   def event_loop() {
