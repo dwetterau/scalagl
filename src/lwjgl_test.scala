@@ -163,6 +163,50 @@ object lwjgl_test {
 	sphere.draw(radius, quality, quality);
     glPopMatrix()
   }
+	
+	def drawCube {
+		glPushMatrix
+		glBegin( GL_QUADS )
+
+  glNormal3f(1.0, 0.0, 0.0)
+  glVertex3f(0.5, -0.5, 0.5)
+  glVertex3f(0.5, -0.5, -0.5)
+  glVertex3f(0.5, 0.5, -0.5)
+  glVertex3f(0.5, 0.5, 0.5)
+
+  glNormal3f(0.0, 0.0, -1.0)
+  glVertex3f(0.5, -0.5, -0.5)
+  glVertex3f(-0.5, -0.5, -0.5)
+  glVertex3f(-0.5, 0.5, -0.5)
+  glVertex3f(0.5, 0.5, -0.5)
+
+  glNormal3f(-1.0, 0.0, 0.0)
+  glVertex3f(-0.5, -0.5, -0.5)
+  glVertex3f(-0.5, -0.5, 0.5)
+  glVertex3f(-0.5, 0.5, 0.5)
+  glVertex3f(-0.5, 0.5, -0.5)
+
+  glNormal3f(0.0, 0.0, 1.0)
+  glVertex3f(-0.5, -0.5, 0.5)
+  glVertex3f(0.5, -0.5, 0.5)
+  glVertex3f(0.5, 0.5, 0.5)
+  glVertex3f(-0.5, 0.5, 0.5)
+
+  glNormal3f(0.0, 1.0, 0.0)
+  glVertex3f(0.5, 0.5, 0.5)
+  glVertex3f(0.5, 0.5, -0.5)
+  glVertex3f(-0.5, 0.5, -0.5)
+  glVertex3f(-0.5, 0.5, 0.5)
+
+  glNormal3f(0.0, -1.0, 0.0)
+  glVertex3f(0.5, -0.5, 0.5)
+  glVertex3f(-0.5, -0.5, 0.5)
+  glVertex3f(-0.5, -0.5, -0.5)
+  glVertex3f(0.5, -0.5, -0.5)
+	glPopMatrix
+  glEnd
+
+	}
 
   def event_loop() {
     while(!finished) {
