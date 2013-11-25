@@ -149,12 +149,19 @@ object lwjgl_test {
     	glVertex3f(-0.25f, -0.25f, 0.0f)
     glEnd
     glEnable(GL_LIGHTING)
-    drawSphere
+    glPushMatrix
+    	glTranslatef(1.0f, 0.0f, 0.0f)
+    	drawSphere
+    glPopMatrix
+    glPushMatrix
+    	glTranslatef(0.0f, 1.0f, 0.0f)
+    	glScalef(0.25f, 0.25f, 0.25f)
+    	drawCube
+    glPopMatrix
   }
   
   def drawSphere {
     glPushMatrix()
-    glTranslatef(1.0f, 0.0f, 0.0f);
 	val sphere = new Sphere;
 	sphere.setDrawStyle(GLU_FILL);
 	sphere.setNormals(GLU_SMOOTH);
@@ -164,49 +171,48 @@ object lwjgl_test {
     glPopMatrix()
   }
 	
-	def drawCube {
-		glPushMatrix
-		glBegin( GL_QUADS )
+  def drawCube {
+	  glPushMatrix
+	  glBegin( GL_QUADS )
 
-  glNormal3f(1.0, 0.0, 0.0)
-  glVertex3f(0.5, -0.5, 0.5)
-  glVertex3f(0.5, -0.5, -0.5)
-  glVertex3f(0.5, 0.5, -0.5)
-  glVertex3f(0.5, 0.5, 0.5)
+	  	glNormal3f(1.0f, 0.0f, 0.0f)
+	  	glVertex3f(0.5f, -0.5f, 0.5f)
+	  	glVertex3f(0.5f, -0.5f, -0.5f)
+	  	glVertex3f(0.5f, 0.5f, -0.5f)
+	  	glVertex3f(0.5f, 0.5f, 0.5f)
 
-  glNormal3f(0.0, 0.0, -1.0)
-  glVertex3f(0.5, -0.5, -0.5)
-  glVertex3f(-0.5, -0.5, -0.5)
-  glVertex3f(-0.5, 0.5, -0.5)
-  glVertex3f(0.5, 0.5, -0.5)
+	  	glNormal3f(0.0f, 0.0f, -1.0f)
+	  	glVertex3f(0.5f, -0.5f, -0.5f)
+	  	glVertex3f(-0.5f, -0.5f, -0.5f)
+	  	glVertex3f(-0.5f, 0.5f, -0.5f)
+	  	glVertex3f(0.5f, 0.5f, -0.5f)
 
-  glNormal3f(-1.0, 0.0, 0.0)
-  glVertex3f(-0.5, -0.5, -0.5)
-  glVertex3f(-0.5, -0.5, 0.5)
-  glVertex3f(-0.5, 0.5, 0.5)
-  glVertex3f(-0.5, 0.5, -0.5)
+	  	glNormal3f(-1.0f, 0.0f, 0.0f)
+	  	glVertex3f(-0.5f, -0.5f, -0.5f)
+	  	glVertex3f(-0.5f, -0.5f, 0.5f)
+	  	glVertex3f(-0.5f, 0.5f, 0.5f)
+	  	glVertex3f(-0.5f, 0.5f, -0.5f)
 
-  glNormal3f(0.0, 0.0, 1.0)
-  glVertex3f(-0.5, -0.5, 0.5)
-  glVertex3f(0.5, -0.5, 0.5)
-  glVertex3f(0.5, 0.5, 0.5)
-  glVertex3f(-0.5, 0.5, 0.5)
+	  	glNormal3f(0.0f, 0.0f, 1.0f)
+	  	glVertex3f(-0.5f, -0.5f, 0.5f)
+	  	glVertex3f(0.5f, -0.5f, 0.5f)
+	  	glVertex3f(0.5f, 0.5f, 0.5f)
+	  	glVertex3f(-0.5f, 0.5f, 0.5f)
 
-  glNormal3f(0.0, 1.0, 0.0)
-  glVertex3f(0.5, 0.5, 0.5)
-  glVertex3f(0.5, 0.5, -0.5)
-  glVertex3f(-0.5, 0.5, -0.5)
-  glVertex3f(-0.5, 0.5, 0.5)
+	  	glNormal3f(0.0f, 1.0f, 0.0f)
+	  	glVertex3f(0.5f, 0.5f, 0.5f)
+	  	glVertex3f(0.5f, 0.5f, -0.5f)
+	  	glVertex3f(-0.5f, 0.5f, -0.5f)
+	  	glVertex3f(-0.5f, 0.5f, 0.5f)
 
-  glNormal3f(0.0, -1.0, 0.0)
-  glVertex3f(0.5, -0.5, 0.5)
-  glVertex3f(-0.5, -0.5, 0.5)
-  glVertex3f(-0.5, -0.5, -0.5)
-  glVertex3f(0.5, -0.5, -0.5)
-	glPopMatrix
-  glEnd
-
-	}
+	  	glNormal3f(0.0f, -1.0f, 0.0f)
+	  	glVertex3f(0.5f, -0.5f, 0.5f)
+	  	glVertex3f(-0.5f, -0.5f, 0.5f)
+	  	glVertex3f(-0.5f, -0.5f, -0.5f)
+	  	glVertex3f(0.5f, -0.5f, -0.5f)
+	  glEnd
+	  glPopMatrix
+}
 
   def event_loop() {
     while(!finished) {
