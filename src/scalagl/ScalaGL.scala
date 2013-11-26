@@ -163,25 +163,15 @@ class ScalaGL {
   def render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity()
-    var eye = new Matrix4f()
-    eye.m00 = 1.0f
-    eye.m11 = 1.0f
-    eye.m22 = 1.0f
-    eye.m33 = 1.0f
-    eye.m03 = eye_x
-    eye.m13 = eye_y
-    eye.m23 = eye_z
-    eye.rotate(rotation, new Vector3f(0.0f, 1.0f, 0.0f))
-    var ang = (rotation + Math.PI / 2.0f) % (2 * Math.PI) 
-    var vect = new Vector3f(Math.cos(ang).toFloat, 0.0f, -Math.sin(ang).toFloat)
-    vect.normalise()
-    eye.rotate(uprotation, vect)
+    var length = (new Vector3f(eye_x, eye_y, eye_z)).length
+    eye_x = length * Math.sin(uprotation).toFloat * Math.cos(rotation - Math.PI).toFloat
+    eye_y = length * Math.sin(uprotation).toFloat * Math.sin(rotation - Math.PI).toFloat
+    eye_z = length * Math.cos(uprotation).toFloat
     
-    gluLookAt(eye.m03, eye.m13, eye.m23, look_x, look_y, look_z, 0.0f, 1.0f, 0.0f)
-
-    if (drawAxes)
+    gluLookAt(eye_x, eye_y, eye_z, look_x, look_y, look_z, 0.0f, 1.0f, 0.0f)
+    if (drawAxes) {
       draw_axes()
-    
+    }
     glTranslatef(0.0f, 0.0f, 0.0f)
     //glRotatef(rotation.toDegrees, 0.0f, 1.0f, 0.0f)
     drawScene()
@@ -268,13 +258,21 @@ class ScalaGL {
   
   // Scala DSL stuff
   abstract sealed class glLine
-  case class Set(fn:Function0[Unit]) extends glLine
+  case class SetDef(fn:Function0[Unit]) extends glLine
   case class PointDef(fn:Function0[Unit]) extends glLine
   case class ColorDef(fn:Function0[Unit]) extends glLine
-  case class PrintFloat(s: Symbol) extends glLine
+  case class PrintFloatDef(s: Symbol) extends glLine
   case class PrintTuple(s: Symbol) extends glLine
   case class CubeDef(p: Symbol, s: Float, c: Symbol) extends glLine
   case class CubeDefs(p: Symbol, s: Symbol, c: Symbol) extends glLine
+  case class LabelDef(s: String) extends glLine
+  case class CheckDef(fn:Function0[Boolean], label:String) extends glLine
+  
+  case class IfBuilder(fn:Function0[Boolean]) {
+    def goto(label:String) = {
+      lines = lines :+ CheckDef(fn, label)
+    }
+  }
   
   case class Assignment(sym:Symbol) {
       def :=(v:(Any, Any, Any)):Function0[Unit] = (() => assignments.set(sym, v))
@@ -301,48 +299,84 @@ class ScalaGL {
       def *(right:Float):Function0[Float] = (() => left() * right)
   }
   
+  case class BinaryFn(left:Function0[Float]) {
+    // Equality
+    def ==(right:Symbol):Function0[Boolean] = (() => left() == assignments.float(right))
+    def ==(right:Function0[Float]):Function0[Boolean] = (() => left() == right())
+    def ==(right:Float):Function0[Boolean] = (() => left() == right)
+    // not equality
+    def !=(right:Symbol):Function0[Boolean] = (() => left() != assignments.float(right))
+    def !=(right:Function0[Float]):Function0[Boolean] = (() => left() != right())
+    def !=(right:Float):Function0[Boolean] = (() => left() != right)
+    // LE
+    def <=(right:Symbol):Function0[Boolean] = (() => left() <= assignments.float(right))
+    def <=(right:Function0[Float]):Function0[Boolean] = (() => left() <= right())
+    def <=(right:Float):Function0[Boolean] = (() => left() <= right)
+    // L
+    def <(right:Symbol):Function0[Boolean] = (() => left() < assignments.float(right))
+    def <(right:Function0[Float]):Function0[Boolean] = (() => left() < right())
+    def <(right:Float):Function0[Boolean] = (() => left() < right)
+    // GE
+    def >=(right:Symbol):Function0[Boolean] = (() => left() >= assignments.float(right))
+    def >=(right:Function0[Float]):Function0[Boolean] = (() => left() >= right())
+    def >=(right:Float):Function0[Boolean] = (() => left() >= right)
+    // G
+    def >(right:Symbol):Function0[Boolean] = (() => left() > assignments.float(right))
+    def >(right:Function0[Float]):Function0[Boolean] = (() => left() > right())
+    def >(right:Float):Function0[Boolean] = (() => left() > right)
+  }
+  
   // Reads in the lines of the program and puts them in a list
-  case class BuildLine(uselessNumber: Int) {
-    object printfloat {
-      def apply(s: Symbol) = {
-        lines = lines :+ PrintFloat(s)
-      }
+
+  object printfloat {
+    def apply(s: Symbol) = {
+      lines = lines :+ PrintFloatDef(s)
     }
+  }
+  
+  object set { 
+    def apply(fn:Function0[Unit]) = lines = lines :+ SetDef(fn)
+  }
     
-    object set { 
-      def apply(fn:Function0[Unit]) = lines = lines :+ Set(fn)
-    }
+  object color {
+    def apply(fn:Function0[Unit]) = lines = lines :+ ColorDef(fn)
+  }
     
-    object color {
-      def apply(fn:Function0[Unit]) = lines = lines :+ ColorDef(fn)
-    }
+  object point {
+    def apply(fn:Function0[Unit]) = lines = lines :+ PointDef(fn)
+  }
     
-    object point {
-      def apply(fn:Function0[Unit]) = lines = lines :+ PointDef(fn)
+  object printcolor {
+    def apply(s: Symbol) = {
+      lines = lines :+ PrintTuple(s)
     }
-    
-    object printcolor {
-      def apply(s: Symbol) = {
-        lines = lines :+ PrintTuple(s)
-      }
+  }
+  object printpoint {
+    def apply(s: Symbol) = {
+      lines = lines :+ PrintTuple(s)
     }
-    object printpoint {
-      def apply(s: Symbol) = {
-        lines = lines :+ PrintTuple(s)
-      }
-    }
-    object cube {
-      def apply(s:(Symbol, Any, Symbol)) = {
-        s._2 match {
-          case c:Symbol => {
-        	  lines = lines :+ CubeDefs(s._1, c, s._3)
-          }
-          case f:Float => {
-        	  lines = lines :+ CubeDef(s._1, f, s._3)
-          }
+  }
+  object cube {
+    def apply(s:(Symbol, Any, Symbol)) = {
+      s._2 match {
+        case c:Symbol => {
+      	  lines = lines :+ CubeDefs(s._1, c, s._3)
+        }
+        case f:Float => {
+      	  lines = lines :+ CubeDef(s._1, f, s._3)
         }
       }
     }
+  }
+  
+  object label {
+    def apply(s:String) = {
+      lines = lines :+ LabelDef(s)
+      labels(s) = lines.length
+    }
+  }
+  object check {
+    def apply(fn:Function0[Boolean]) = IfBuilder(fn)
   }
   
   def start() {
@@ -354,7 +388,7 @@ class ScalaGL {
       return
     }
     lines(index) match {
-      case Set(fn:Function0[Unit]) => {
+      case SetDef(fn:Function0[Unit]) => {
     	fn()
     	executeLine(index + 1)
       }
@@ -366,7 +400,7 @@ class ScalaGL {
         fn()
         executeLine(index + 1)
       }
-      case PrintFloat(s:Symbol) => {
+      case PrintFloatDef(s:Symbol) => {
         println(assignments.float(s))
         executeLine(index + 1)
       }
@@ -386,6 +420,16 @@ class ScalaGL {
         var scale = assignments.float(s)
         drawCube(position, scale, color)
         executeLine(index + 1)
+      }
+      case LabelDef(s:String) => {
+        executeLine(index + 1)
+      }
+      case CheckDef(fn:Function0[Boolean], gotoLabel:String) => {
+        if(fn()) {
+          executeLine(labels(gotoLabel))
+        } else {
+          executeLine(index + 1)
+        }
       }
     }
   }
@@ -442,9 +486,11 @@ class ScalaGL {
   var labels = HashMap[String, Int]()
 
   
-  implicit def char2BuildLine(i: Int) = BuildLine(i)
+  //implicit def char2BuildLine(i: Int) = BuildLine(i)
   implicit def symbol2Assignment(sym:Symbol) = Assignment(sym)
   
-  implicit def symbol2MathFunction(sym:Symbol) = MathFn(() => assignments.float(sym))
-  implicit def fnOfInt2MathFunction(fn:Function0[Float]) = MathFn(fn)
+  implicit def symbol2BinaryFn(s:Symbol) = BinaryFn(() => assignments.float(s))
+  implicit def fnOfInt2BinaryFn(fn:Function0[Float]) = BinaryFn(fn)
+  implicit def symbol2MathFn(s:Symbol) = MathFn(() => assignments.float(s))
+  implicit def fnOfFloat2MathFn(fn:Function0[Float]) = MathFn(fn)
 }
