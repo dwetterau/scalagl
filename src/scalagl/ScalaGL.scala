@@ -33,7 +33,7 @@ class ScalaGL {
   var finished = false
   
   var rotation = 0.0f
-  var uprotation = 0.0f
+  var uprotation = Math.PI.toFloat / 2.0f
   var look_x = 0.0f
   var look_y = 0.0f
   var look_z = 0.0f
@@ -70,7 +70,7 @@ class ScalaGL {
     while (Mouse.next()) {
       if (isButtonDown(0)){
         rotation = (rotation + .005f * getEventDX) % (Math.PI.toFloat * 2.0f)
-        uprotation = (uprotation - .05f * getEventDY)
+        uprotation = (uprotation - .005f * getEventDY)
         if (uprotation > Math.PI.toFloat / 2.0f) {
           uprotation -= Math.PI.toFloat
         } else if (uprotation < -Math.PI.toFloat / 2.0f) {
@@ -165,9 +165,8 @@ class ScalaGL {
     glLoadIdentity()
     var length = (new Vector3f(eye_x, eye_y, eye_z)).length
     eye_x = length * Math.sin(uprotation).toFloat * Math.cos(rotation - Math.PI).toFloat
-    eye_y = length * Math.sin(uprotation).toFloat * Math.sin(rotation - Math.PI).toFloat
-    eye_z = length * Math.cos(uprotation).toFloat
-    
+    eye_y = length * Math.cos(uprotation).toFloat
+    eye_z = length * Math.sin(uprotation).toFloat * Math.sin(rotation - Math.PI).toFloat
     gluLookAt(eye_x, eye_y, eye_z, look_x, look_y, look_z, 0.0f, 1.0f, 0.0f)
     if (drawAxes) {
       draw_axes()
