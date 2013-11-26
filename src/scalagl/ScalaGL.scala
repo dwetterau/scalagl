@@ -49,6 +49,7 @@ class ScalaGL {
   }
   
   def run() {
+    Display.setTitle("Scala LWJGL")
     Display.setVSyncEnabled(true)
     Display.setDisplayMode(new DisplayMode(800,600))
     Display.create()
