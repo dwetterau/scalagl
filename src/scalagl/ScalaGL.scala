@@ -27,54 +27,13 @@ import scala.collection.mutable.HashMap
 
 class ScalaGL {
   
-  abstract sealed class glLine
-  case class Set(name:Symbol)
+  // Actual rendering stuff
   
-  class Assignments[X, Y, Z] {
-    val pointMap = HashMap[Symbol, X]()
-    val colorMap = HashMap[Symbol, Y]()
-    val floatMap = HashMap[Symbol, Z]()
-    
-    def set[W >: X with Y with Z](k:Symbol, v:W) = v match {
-      case x:X => pointMap(k) = x
-      case y:Y => colorMap(k) = y
-      case z:Z => floatMap(k) = z
-    }
-    def point(k:Symbol):X = pointMap(k);
-    def color(k:Symbol):Y = colorMap(k);
-    def float(k:Symbol):Z = floatMap(k);
-    
-    def any(k:Symbol):Any = {
-      (pointMap.get(k), colorMap.get(k), floatMap.get(k)) match {
-        case (Some(x), None, None) => x
-        case (None, Some(y), None) => y
-        case (None, None, Some(z)) => z
-        case _ => None
-      }
-    }
-  }
-  
-  case class Assignment(sym:Symbol) {
-      def :=(v:Point):Function0[Unit] = (() => assignments.set(sym, v))
-      def :=(v:Color):Function0[Unit] = (() => assignments.set(sym, v))
-      def :=(v:Float):Function0[Unit] = (() => assignments.set(sym, v))
-    }
-
-  
-  class Point {
-    
-  }
-  
-  class Color {
-    
-  }
-  
-  var assignments = new Assignments[Point, Color, Float];
-
   var drawAxes = true
   var finished = false
   
   var rotation = 0.0f
+  var uprotation = 0.0f
   var look_x = 0.0f
   var look_y = 0.0f
   var look_z = 0.0f
@@ -82,6 +41,7 @@ class ScalaGL {
   var eye_x = 0.0f
   var eye_y = 0.0f
   var eye_z = 1.5f
+  
   
   
   def main(args: Array[String]) = {
@@ -97,11 +57,38 @@ class ScalaGL {
     glEnable(GL_LIGHTING)
 	glEnable(GL_LIGHT0)
     adjust_cam
-    event_loop()
+    event_loop
   }
 
   def clean_up() {
 	  Display.destroy()
+  }
+  
+  def mouse_events() {
+    import Mouse._
+    while (Mouse.next()) {
+      if (isButtonDown(0)){
+        rotation = (rotation + .005f * getEventDX) % (Math.PI.toFloat * 2.0f)
+        uprotation = (uprotation - .05f * getEventDY)
+        if (uprotation > Math.PI.toFloat / 2.0f) {
+          uprotation -= Math.PI.toFloat
+        } else if (uprotation < -Math.PI.toFloat / 2.0f) {
+          uprotation += Math.PI.toFloat
+        }
+      }
+      if (getEventDWheel != 0) {
+    	var delta = 0.0f;  
+        if(getEventDWheel > 0) {
+    	    delta = 0.98f
+        } else {
+        	delta = 1.02f    	  
+    	}
+        eye_x *= delta
+        eye_y *= delta
+        eye_z *= delta
+        println(eye_y)
+      }
+    }
   }
 
   def key_events() = {
@@ -131,10 +118,10 @@ class ScalaGL {
 			  eye_y += 0.05f
 			}
 			if (isKeyDown(KEY_Q)) {
-			  rotation = (rotation - 0.05f) % 360.0f
+			  rotation = (rotation - 0.05f) % (Math.PI.toFloat * 2.0f)
 			}
 			if (isKeyDown(KEY_E)) {
-			  rotation = (rotation + 0.05f) % 360.0f
+			  rotation = (rotation + 0.05f) % (Math.PI.toFloat * 2.0f)
 			}
 			// Make it toggle (instead of taking repeat events, like isKeyDown does)
 			if (getEventKey() == KEY_F && !isRepeatEvent()) {
@@ -184,6 +171,11 @@ class ScalaGL {
     eye.m13 = eye_y
     eye.m23 = eye_z
     eye.rotate(rotation, new Vector3f(0.0f, 1.0f, 0.0f))
+    var ang = (rotation + Math.PI / 2.0f) % (2 * Math.PI) 
+    var vect = new Vector3f(Math.cos(ang).toFloat, 0.0f, -Math.sin(ang).toFloat)
+    vect.normalise()
+    eye.rotate(uprotation, vect)
+    
     gluLookAt(eye.m03, eye.m13, eye.m23, look_x, look_y, look_z, 0.0f, 1.0f, 0.0f)
 
     if (drawAxes)
@@ -252,16 +244,154 @@ class ScalaGL {
 	  glPopMatrix
 }
 
-  def event_loop() {
+  def event_loop {
     while(!finished) {
-      Display.update()
+      Display.update
       
-      key_events()
-      render()
+      key_events
+      mouse_events
+      render
       
       Display.sync(30)
+      finished = true
     }
-    clean_up()
+    clean_up
   }
+  
+  
+  
+  // Scala DSL stuff
+  abstract sealed class glLine
+  case class Set(fn:Function0[Unit]) extends glLine
+  case class PointDef(fn:Function0[Unit]) extends glLine
+  case class ColorDef(fn:Function0[Unit]) extends glLine
+  case class PrintFloat(s: Symbol) extends glLine
+  case class PrintTuple(s: Symbol) extends glLine
+  
+  case class Assignment(sym:Symbol) {
+      def :=(v:Float):Function0[Unit] = (() => assignments.set(sym, v))
+      def :=(v:(Any, Any, Any)):Function0[Unit] = {
+        (() => assignments.set(sym, v))
+      }
+  }
+  // Reads in the lines of the program and puts them in a list
+  case class BuildLine(uselessNumber: Int) {
+    object printfloat {
+      def apply(s: Symbol) = {
+        lines = lines :+ PrintFloat(s)
+      }
+    }
+    
+    object set { 
+      def apply(fn:Function0[Unit]) = lines = lines :+ Set(fn)
+    }
+    
+    object color {
+      def apply(fn:Function0[Unit]) = lines = lines :+ ColorDef(fn)
+    }
+    
+    object point {
+      def apply(fn:Function0[Unit]) = lines = lines :+ PointDef(fn)
+    }
+    
+    object printcolor {
+      def apply(s: Symbol) = {
+        lines = lines :+ PrintTuple(s)
+      }
+    }
+    object printpoint {
+      def apply(s: Symbol) = {
+        lines = lines :+ PrintTuple(s)
+      }
+    }
+  }
+  
+  def start() {
+    executeLine(0)
+  }
+  
+  private def executeLine(index: Int) {
+    if (index >= lines.length) {
+      return
+    }
+    lines(index) match {
+      case Set(fn:Function0[Unit]) => {
+    	fn()
+    	executeLine(index + 1)
+      }
+      case PointDef(fn:Function0[Unit]) => {
+        fn()
+        executeLine(index + 1)
+      }
+      case ColorDef(fn:Function0[Unit]) => {
+        fn()
+        executeLine(index + 1)
+      }
+      case PrintFloat(s:Symbol) => {
+        println(assignments.float(s))
+        executeLine(index + 1)
+      }
+      case PrintTuple(s:Symbol) => {
+        println(assignments.tuple(s))
+        executeLine(index + 1)
+      }
+    }
+  }
+  
+  class Assignments[Z] {
+    val tupleMap = HashMap[Symbol, (Any, Any, Any)]()
+    val floatMap = HashMap[Symbol, Z]()
+    
+    def set[W >: (Any, Any, Any) with Z](k:Symbol, v:W) = v match {
+      case y:(Any, Any, Any) => tupleMap(k) = y
+      case z:Z => floatMap(k) = z
+    }
+    def tuple(k:Symbol):(Float, Float, Float) = {
+      var v = tupleMap(k);
+      var v1 = 0.0f 
+      var v2 = 0.0f
+	  var v3 = 0.0f
+	  v._1 match {
+	    case s:Symbol => {
+	      println("we're like looking up the symbol: ", s)
+	      v1 = assignments.float(s);
+	      println("We have found the symbol and set v1=)", v1)
+	    }
+	    case f:Float => v1 = f
+	    case _ => v1 = 0.0f
+	  }
+	  v._2 match {
+	    case s:Symbol => {
+	      v2 = assignments.float(s);
+	    }
+	    case f:Float => v2 = f
+	    case _ => v2 = 0.0f
+	  }
+	  v._3 match {
+	    case s:Symbol => {
+	      v3 = assignments.float(s);
+	    }
+	    case f:Float => v3 = f
+	    case _ => v3 = 0.0f
+	  }
+	  return (v1, v2, v3)
+    }
+    def float(k:Symbol):Z = floatMap(k);
+    
+    def any(k:Symbol):Any = {
+      (tupleMap.get(k), floatMap.get(k)) match {
+        case (Some(y), None) => y
+        case (None, Some(z)) => z
+        case _ => None
+      }
+    }
+  }
+  
+  var assignments = new Assignments[Float];
+  var lines = new Array[glLine](0)
+  var labels = HashMap[String, Int]()
+
+  
+  implicit def int2BuildLine(i: Int) = BuildLine(i)
   implicit def symbol2Assignment(sym:Symbol) = Assignment(sym)
 }
