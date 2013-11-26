@@ -2,7 +2,20 @@ package scalagl
 
 object cubeTest extends ScalaGL {
 	override def drawScene() = {
-		drawCube
+		drawCube((0.0f, 0.0f, 0.0f), 1.0f, (1.0f, 0.0f, 0.0f))
+	}
+}
+
+object realCubeTest extends ScalaGL {
+	override def drawScene() = {
+	  0 set ('a := 1.0f)
+	  0 point ('center := (0.0f, 0.0f, 0.0f))
+	  0 color ('color := ('a, 0.0f, 'a))
+	  0 cube ('center, .5f, 'color)
+	  1 point ('center2 := (0.0f, 0.6f, 0.0f))
+	  0 set ('b := .3f)
+	  1 cube ('center2, 'b, 'color)
+	  start
 	}
 }
 

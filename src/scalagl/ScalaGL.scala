@@ -202,8 +202,12 @@ class ScalaGL {
     glPopMatrix()
   }
 	
-  def drawCube {
+  def drawCube(p:(Float, Float, Float), s: Float, c:(Float, Float, Float)) {
 	  glPushMatrix
+	  glTranslatef(p._1, p._2, p._3);
+	  glScalef(s, s, s)
+	  glColor3f(c._1, c._2, c._3)
+	  glDisable(GL_LIGHTING)
 	  glBegin( GL_QUADS )
 
 	  	glNormal3f(1.0f, 0.0f, 0.0f)
@@ -242,6 +246,7 @@ class ScalaGL {
 	  	glVertex3f(-0.5f, -0.5f, -0.5f)
 	  	glVertex3f(0.5f, -0.5f, -0.5f)
 	  glEnd
+	  glEnable(GL_LIGHTING)
 	  glPopMatrix
 }
 
@@ -254,7 +259,7 @@ class ScalaGL {
       render
       
       Display.sync(30)
-      finished = true
+      //finished = true
     }
     clean_up
   }
@@ -268,6 +273,8 @@ class ScalaGL {
   case class ColorDef(fn:Function0[Unit]) extends glLine
   case class PrintFloat(s: Symbol) extends glLine
   case class PrintTuple(s: Symbol) extends glLine
+  case class CubeDef(p: Symbol, s: Float, c: Symbol) extends glLine
+  case class CubeDefs(p: Symbol, s: Symbol, c: Symbol) extends glLine
   
   case class Assignment(sym:Symbol) {
       def :=(v:Float):Function0[Unit] = (() => assignments.set(sym, v))
@@ -305,6 +312,18 @@ class ScalaGL {
         lines = lines :+ PrintTuple(s)
       }
     }
+    object cube {
+      def apply(s:(Symbol, Any, Symbol)) = {
+        s._2 match {
+          case c:Symbol => {
+        	  lines = lines :+ CubeDefs(s._1, c, s._3)
+          }
+          case f:Float => {
+        	  lines = lines :+ CubeDef(s._1, f, s._3)
+          }
+        }
+      }
+    }
   }
   
   def start() {
@@ -336,6 +355,19 @@ class ScalaGL {
         println(assignments.tuple(s))
         executeLine(index + 1)
       }
+      case CubeDef(p: Symbol, s: Float, c: Symbol) => {
+        var position = assignments.tuple(p)
+        var color = assignments.tuple(c)
+        drawCube(position, s, color)
+        executeLine(index + 1)
+      }
+      case CubeDefs(p: Symbol, s: Symbol, c: Symbol) => {
+        var position = assignments.tuple(p)
+        var color = assignments.tuple(c)
+        var scale = assignments.float(s)
+        drawCube(position, scale, color)
+        executeLine(index + 1)
+      }
     }
   }
   
@@ -354,9 +386,7 @@ class ScalaGL {
 	  var v3 = 0.0f
 	  v._1 match {
 	    case s:Symbol => {
-	      println("we're like looking up the symbol: ", s)
 	      v1 = assignments.float(s);
-	      println("We have found the symbol and set v1=)", v1)
 	    }
 	    case f:Float => v1 = f
 	    case _ => v1 = 0.0f
@@ -393,6 +423,6 @@ class ScalaGL {
   var labels = HashMap[String, Int]()
 
   
-  implicit def int2BuildLine(i: Int) = BuildLine(i)
+  implicit def char2BuildLine(i: Int) = BuildLine(i)
   implicit def symbol2Assignment(sym:Symbol) = Assignment(sym)
 }
