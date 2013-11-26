@@ -38,3 +38,18 @@ object variableTest extends ScalaGL {
     start
   }
 }
+
+object mathTest extends ScalaGL {
+  override def drawScene() = {
+    0 set ('a := 0.0f)
+    1 set ('a := 'a + 0.1f)
+    1 printfloat 'a
+    1 set ('a := 'a - 0.1f)
+    1 printfloat 'a
+    1 set ('a := ('a + .2f) * 0.5f)
+    1 printfloat 'a
+    1 set ('a := ('a + .2f) / 0.6f)
+    1 printfloat 'a
+    start
+  }
+}

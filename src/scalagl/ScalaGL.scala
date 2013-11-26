@@ -277,11 +277,30 @@ class ScalaGL {
   case class CubeDefs(p: Symbol, s: Symbol, c: Symbol) extends glLine
   
   case class Assignment(sym:Symbol) {
+      def :=(v:(Any, Any, Any)):Function0[Unit] = (() => assignments.set(sym, v))
       def :=(v:Float):Function0[Unit] = (() => assignments.set(sym, v))
-      def :=(v:(Any, Any, Any)):Function0[Unit] = {
-        (() => assignments.set(sym, v))
-      }
+      def :=(v:Function0[Float]):Function0[Unit] = (() => assignments.set(sym, v()))
   }
+  
+  case class MathFn(left:Function0[Float]) {
+      // Addition
+	  def +(right:Symbol):Function0[Float] = (() => left() + assignments.float(right))
+      def +(right:Function0[Float]):Function0[Float] = (() => left() + right())
+      def +(right:Float):Function0[Float] = (() => left() + right)
+      // Subtraction
+      def -(right:Symbol):Function0[Float] = (() => left() - assignments.float(right))
+      def -(right:Function0[Float]):Function0[Float] = (() => left() - right())
+      def -(right:Float):Function0[Float] = (() => left() - right)
+      // Division
+      def /(right:Symbol):Function0[Float] = (() => left() / assignments.float(right))
+      def /(right:Function0[Float]):Function0[Float] = (() => left() / right())
+      def /(right:Float):Function0[Float] = (() => left() / right)
+      // Multiplication
+      def *(right:Symbol):Function0[Float] = (() => left() * assignments.float(right))
+      def *(right:Function0[Float]):Function0[Float] = (() => left() * right())
+      def *(right:Float):Function0[Float] = (() => left() * right)
+  }
+  
   // Reads in the lines of the program and puts them in a list
   case class BuildLine(uselessNumber: Int) {
     object printfloat {
@@ -425,4 +444,7 @@ class ScalaGL {
   
   implicit def char2BuildLine(i: Int) = BuildLine(i)
   implicit def symbol2Assignment(sym:Symbol) = Assignment(sym)
+  
+  implicit def symbol2MathFunction(sym:Symbol) = MathFn(() => assignments.float(sym))
+  implicit def fnOfInt2MathFunction(fn:Function0[Float]) = MathFn(fn)
 }
