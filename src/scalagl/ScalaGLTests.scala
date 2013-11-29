@@ -21,8 +21,23 @@ object realCubeTest extends ScalaGL {
 
 object sphereTest extends ScalaGL {
 	override def drawScene() = {
-		drawSphere
+		set ('r := 0.5f)
+		point ('center := (0.0f, 0.0f, 0.0f))
+		color ('color := (1.0f, 0.0f, 0.0f))
+		sphere ('center, 'r, 'color)
+		start
 	}
+}
+
+object triTest extends ScalaGL {
+    override def drawScene() = {
+        point ('p1 := (0.0f, 0.0f, 0.0f))
+        point ('p2 := (0.0f, 1.0f, 0.0f))
+        point ('p3 := (0.0f, 0.0f, 1.0f))
+		color ('color := (1.0f, 0.0f, 0.0f))
+		triangle ('p1, 'p2, 'p3, 'color)
+		start
+    }
 }
 
 object variableTest extends ScalaGL {

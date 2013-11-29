@@ -180,14 +180,27 @@ class ScalaGL {
     //By default, draws nothing
   }
   
-  def drawSphere {
-    glPushMatrix()
+  // assumes vertices were passed in correct order (clockwise)
+  def drawTriangle(p1:(Float, Float, Float), p2:(Float, Float, Float), p3:(Float, Float, Float), c:(Float, Float, Float)) {
+    glColor3f(c._1, c._2, c._3)
+    glDisable(GL_LIGHTING)
+    glBegin(GL_TRIANGLES)
+    glVertex3f(p1._1, p1._2, p1._3)
+    glVertex3f(p2._1, p2._2, p2._3)
+    glVertex3f(p3._1, p3._2, p3._3)
+    glEnd
+  }
+  
+  def drawSphere(p:(Float, Float, Float), r: Float, c:(Float, Float, Float)) {
+    glPushMatrix
+    glTranslatef(p._1, p._2, p._3);
+    glColor3f(c._1, c._2, c._3)
+	glDisable(GL_LIGHTING)
 	val sphere = new Sphere;
-	sphere.setDrawStyle(GLU_FILL);
-	sphere.setNormals(GLU_SMOOTH);
-	val quality = 25;
-	val radius = .2f
-	sphere.draw(radius, quality, quality);
+	sphere.setDrawStyle(GLU_FILL)
+	sphere.setNormals(GLU_SMOOTH)
+	val quality = 25
+	sphere.draw(r, quality, quality)
     glPopMatrix()
   }
 	
@@ -264,6 +277,9 @@ class ScalaGL {
   case class PrintTuple(s: Symbol) extends glLine
   case class CubeDef(p: Symbol, s: Float, c: Symbol) extends glLine
   case class CubeDefs(p: Symbol, s: Symbol, c: Symbol) extends glLine
+  case class SphereDef(p: Symbol, r: Float, c: Symbol) extends glLine
+  case class SphereDefs(p: Symbol, r: Symbol, c: Symbol) extends glLine
+  case class TriangleDef(p1: Symbol, p2:Symbol, p3:Symbol, c: Symbol) extends glLine
   case class LabelDef(s: String) extends glLine
   case class CheckDef(fn:Function0[Boolean], label:String) extends glLine
   
@@ -368,6 +384,25 @@ class ScalaGL {
     }
   }
   
+  object sphere {
+    def apply(s:(Symbol, Any, Symbol)) = {
+      s._2 match {
+        case c:Symbol => {
+      	  lines = lines :+ SphereDefs(s._1, c, s._3)
+        }
+        case f:Float => {
+      	  lines = lines :+ SphereDef(s._1, f, s._3)
+        }
+      }
+    }
+  }
+  
+  object triangle {
+    def apply(s:(Symbol, Symbol, Symbol, Symbol)) = {
+      lines = lines :+ TriangleDef(s._1, s._2, s._3, s._4)
+    }
+  }
+  
   object label {
     def apply(s:String) = {
       lines = lines :+ LabelDef(s)
@@ -418,6 +453,27 @@ class ScalaGL {
         var color = assignments.tuple(c)
         var scale = assignments.float(s)
         drawCube(position, scale, color)
+        executeLine(index + 1)
+      }
+      case SphereDef(p: Symbol, r: Float, c: Symbol) => {
+        var position = assignments.tuple(p)
+        var color = assignments.tuple(c)
+        drawSphere(position, r, color)
+        executeLine(index + 1)
+      }
+      case SphereDefs(p: Symbol, r: Symbol, c: Symbol) => {
+        var position = assignments.tuple(p)
+        var color = assignments.tuple(c)
+        var scale = assignments.float(r)
+        drawSphere(position, scale, color)
+        executeLine(index + 1)
+      }
+      case TriangleDef(p1: Symbol, p2: Symbol, p3: Symbol, c: Symbol) => {
+        var po1 = assignments.tuple(p1)
+        var po2= assignments.tuple(p2)
+        var po3 = assignments.tuple(p3)
+        var color = assignments.tuple(c)
+        drawTriangle(po1, po2, po3, color)
         executeLine(index + 1)
       }
       case LabelDef(s:String) => {
