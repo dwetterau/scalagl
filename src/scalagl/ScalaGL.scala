@@ -41,6 +41,7 @@ class ScalaGL {
   var eye_x = 0.0f
   var eye_y = 0.0f
   var eye_z = 1.5f
+  var delta = 1.0f;  
   
   
   
@@ -69,25 +70,16 @@ class ScalaGL {
     import Mouse._
     while (Mouse.next()) {
       if (isButtonDown(0)){
-        rotation = (rotation + .005f * getEventDX) % (Math.PI.toFloat * 2.0f)
-        uprotation = (uprotation - .005f * getEventDY)
-        if (uprotation > Math.PI.toFloat / 2.0f) {
-          uprotation -= Math.PI.toFloat
-        } else if (uprotation < -Math.PI.toFloat / 2.0f) {
-          uprotation += Math.PI.toFloat
-        }
+        rotation = rotation + .005f * getEventDX
+        uprotation = uprotation - .005f * getEventDY
+        fix_angles
       }
       if (getEventDWheel != 0) {
-    	var delta = 0.0f;  
         if(getEventDWheel > 0) {
-    	    delta = 0.98f
+    	    delta -= .02f
         } else {
-        	delta = 1.02f    	  
+        	delta += .02f   	  
     	}
-        eye_x *= delta
-        eye_y *= delta
-        eye_z *= delta
-        println(eye_y)
       }
     }
   }
@@ -106,35 +98,51 @@ class ScalaGL {
 			if (isKeyDown(KEY_S)) {
 			  eye_z -= 0.05f
 			}
-			if (isKeyDown(KEY_A)) {
-			  eye_x -= 0.05f
-			}
-			if (isKeyDown(KEY_D)) {
-			  eye_x += 0.05f
-			}
-			if (isKeyDown(KEY_Z)) {
-			  eye_y -= 0.05f
-			}
-			if (isKeyDown(KEY_X)) {
-			  eye_y += 0.05f
+			if (isKeyDown(KEY_E)) {
+			  // zoom in
+			  delta -= 0.02f
 			}
 			if (isKeyDown(KEY_Q)) {
-			  rotation = (rotation - 0.05f) % (Math.PI.toFloat * 2.0f)
+			  // zoom out
+			  delta += .02f
 			}
-			if (isKeyDown(KEY_E)) {
-			  rotation = (rotation + 0.05f) % (Math.PI.toFloat * 2.0f)
+			if (isKeyDown(KEY_W)) {
+			  // uprotation +
+			  uprotation -= .05f
+			}
+			if (isKeyDown(KEY_S)) {
+			  // uprotation -
+			  uprotation += .05f
+			}
+			if (isKeyDown(KEY_D)) {
+			  rotation = rotation - 0.05f
+			}
+			if (isKeyDown(KEY_A)) {
+			  rotation = rotation + 0.05f
 			}
 			// Make it toggle (instead of taking repeat events, like isKeyDown does)
 			if (getEventKey() == KEY_F && !isRepeatEvent()) {
 				drawAxes = !(drawAxes)
 			}
+			fix_angles
     	}
     }
+  }
+  
+  def fix_angles() {
+    // flips around the camera correctly
+	if (uprotation > Math.PI.toFloat) {
+      uprotation = Math.PI.toFloat - (uprotation - Math.PI.toFloat)
+      rotation += Math.PI.toFloat
+    } else if (uprotation < 0) {
+      uprotation = -uprotation
+      rotation += Math.PI.toFloat
+    }
+	rotation %= (Math.PI.toFloat * 2.0f)
   }
 
   def adjust_cam(){
 	val v = Display.getDisplayMode.getWidth.toFloat/Display.getDisplayMode.getHeight.toFloat
-	printf("v:%f",v)
 	glMatrixMode(GL_PROJECTION)
 	glLoadIdentity
 	glFrustum(-v,v,-1,1,1,100)
@@ -163,7 +171,7 @@ class ScalaGL {
   def render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity()
-    var length = (new Vector3f(eye_x, eye_y, eye_z)).length
+    var length = delta
     eye_x = length * Math.sin(uprotation).toFloat * Math.cos(rotation - Math.PI).toFloat
     eye_y = length * Math.cos(uprotation).toFloat
     eye_z = length * Math.sin(uprotation).toFloat * Math.sin(rotation - Math.PI).toFloat
