@@ -164,10 +164,14 @@ class ScalaGL {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity()
     var length = (new Vector3f(eye_x, eye_y, eye_z)).length
-    eye_x = length * Math.sin(uprotation).toFloat * Math.cos(rotation - Math.PI).toFloat
+    /*eye_x = length * Math.sin(uprotation).toFloat * Math.cos(rotation - Math.PI).toFloat
     eye_y = length * Math.cos(uprotation).toFloat
-    eye_z = length * Math.sin(uprotation).toFloat * Math.sin(rotation - Math.PI).toFloat
-    gluLookAt(eye_x, eye_y, eye_z, look_x, look_y, look_z, 0.0f, 1.0f, 0.0f)
+    eye_z = length * Math.sin(uprotation).toFloat * Math.sin(rotation - Math.PI).toFloat*/
+    var x = length * Math.sin(uprotation).toFloat * Math.cos(rotation - Math.PI).toFloat
+    var y = length * Math.cos(uprotation).toFloat
+    var z = length * Math.sin(uprotation).toFloat * Math.sin(rotation - Math.PI).toFloat
+    //gluLookAt(eye_x, eye_y, eye_z, look_x, look_y, look_z, 0.0f, 1.0f, 0.0f)
+    gluLookAt(x, y, z, look_x, look_y, look_z, 0.0f, 1.0f, 0.0f)
     if (drawAxes) {
       draw_axes()
     }
