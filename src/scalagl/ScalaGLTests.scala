@@ -164,6 +164,53 @@ object drawTriFractal extends ScalaGL {
   }
 }
 
+object functionDraw extends ScalaGL {
+  override def drawScene() = {
+    import math.Pi
+    set ('x := -2)
+    set ('y := -2)
+    set ('d := .1f)
+    set ('x_lim := 2)
+    set ('y_lim := 2)
+    label ("x_loop")
+    	set ('y := -2)
+    	label ("y_loop")
+    		set ('new_x := 'x + 'd)
+    		set ('new_y := 'y + 'd)
+    		
+    		set ('p1z := func('x, 'y))
+    		set ('p2z := func('x, 'new_y))
+    		set ('p3z := func('new_x, 'new_y))
+    		set ('p4z := func('new_x, 'y))
+    		
+    		set ('p1 := ('x, 'y, 'p1z))
+    		set ('p2 := ('x, 'new_y, 'p2z))
+    		set ('p3 := ('new_x, 'new_y, 'p3z))
+    		set ('p4 := ('new_x, 'y, 'p4z))
+    		
+    		set ('val := func('x, 'y))
+    		set ('red := cos('val))
+    		set ('blue := sin('val))
+    		set ('green := 'val/(2.0f*Pi).toFloat)
+    		set ('color := ('red, 'green, 'blue))
+    		
+    		triangle ('p1, 'p2, 'p3, 'color)
+    		triangle ('p3, 'p4, 'p1, 'color)
+    		set ('y := 'new_y)
+    		check ('y < 'y_lim) goto "y_loop"
+    	set('x := 'x + 'd)
+    	check ('x < 'x_lim) goto "x_loop"
+    start
+  }
+  def func(x:Symbol, y:Symbol) : Function0[Float] = {
+    set ('x2 := pow(x, 2))
+    set ('y2 := pow(y, 2))
+    return sqrt('x2 + 'y2) + 3.0f * cos(sqrt('x2 + 'y2))
+	//return 2.0f * sin(x) * pow(Math.E.toFloat, (-1.0f * ('x2 + 'y2)))
+  }
+}
+
+
 object boxSpiral extends ScalaGL {
   override def drawScene() = {
     import math.Pi
