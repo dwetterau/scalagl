@@ -286,8 +286,10 @@ class ScalaGL {
   case class PrintTuple(s: Symbol) extends glLine
   case class CubeDef(p: Symbol, s: Float, c: Symbol) extends glLine
   case class CubeDefs(p: Symbol, s: Symbol, c: Symbol) extends glLine
+  case class CubeDeff(p: Symbol, s: Function0[Float], c: Symbol) extends glLine
   case class SphereDef(p: Symbol, r: Float, c: Symbol) extends glLine
   case class SphereDefs(p: Symbol, r: Symbol, c: Symbol) extends glLine
+  case class SphereDeff(p: Symbol, r: Function0[Float], c: Symbol) extends glLine
   case class TriangleDef(p1: Symbol, p2:Symbol, p3:Symbol, c: Symbol) extends glLine
   case class LabelDef(s: String) extends glLine
   case class CheckDef(fn:Function0[Boolean], label:String) extends glLine
@@ -302,6 +304,7 @@ class ScalaGL {
       def :=(v:(Any, Any, Any)):Function0[Unit] = (() => assignments.set(sym, v))
       def :=(v:Float):Function0[Unit] = (() => assignments.set(sym, v))
       def :=(v:Function0[Float]):Function0[Unit] = (() => assignments.set(sym, v()))
+      def :=(v:Symbol):Function0[Unit] = (() => assignments.set(sym, assignments.float(v)))
   }
   
   case class MathFn(left:Function0[Float]) {
@@ -309,18 +312,22 @@ class ScalaGL {
 	  def +(right:Symbol):Function0[Float] = (() => left() + assignments.float(right))
       def +(right:Function0[Float]):Function0[Float] = (() => left() + right())
       def +(right:Float):Function0[Float] = (() => left() + right)
+      def +(right:Double):Function0[Float] = (() => left() + right.toFloat)
       // Subtraction
       def -(right:Symbol):Function0[Float] = (() => left() - assignments.float(right))
       def -(right:Function0[Float]):Function0[Float] = (() => left() - right())
       def -(right:Float):Function0[Float] = (() => left() - right)
+      def -(right:Double):Function0[Float] = (() => left() - right.toFloat)
       // Division
       def /(right:Symbol):Function0[Float] = (() => left() / assignments.float(right))
       def /(right:Function0[Float]):Function0[Float] = (() => left() / right())
       def /(right:Float):Function0[Float] = (() => left() / right)
+      def /(right:Double):Function0[Float] = (() => left() / right.toFloat)
       // Multiplication
       def *(right:Symbol):Function0[Float] = (() => left() * assignments.float(right))
       def *(right:Function0[Float]):Function0[Float] = (() => left() * right())
       def *(right:Float):Function0[Float] = (() => left() * right)
+      def *(right:Double):Function0[Float] = (() => left() * right.toFloat)
   }
   
   case class BinaryFn(left:Function0[Float]) {
@@ -358,6 +365,25 @@ class ScalaGL {
     }
   }
   
+  def cos(s:Symbol):Function0[Float] = (() => math.cos(assignments.float(s).toDouble).toFloat)
+  def sin(s:Symbol):Function0[Float] = (() => math.sin(assignments.float(s).toDouble).toFloat)
+  def tan(s:Symbol):Function0[Float] = (() => math.tan(assignments.float(s).toDouble).toFloat)
+  def cos(f:Float):Function0[Float] = (() => math.cos(f.toDouble).toFloat)
+  def sin(f:Float):Function0[Float] = (() => math.sin(f.toDouble).toFloat)
+  def tan(f:Float):Function0[Float] = (() => math.tan(f.toDouble).toFloat)
+  def cos(fn:Function0[Float]):Function0[Float] = (() => math.cos(fn()).toFloat)
+  def sin(fn:Function0[Float]):Function0[Float] = (() => math.sin(fn()).toFloat)
+  def tan(fn:Function0[Float]):Function0[Float] = (() => math.tan(fn()).toFloat)
+  def acos(s:Symbol):Function0[Float] = (() => math.acos(assignments.float(s).toDouble).toFloat)
+  def asin(s:Symbol):Function0[Float] = (() => math.asin(assignments.float(s).toDouble).toFloat)
+  def atan(s:Symbol):Function0[Float] = (() => math.atan(assignments.float(s).toDouble).toFloat)
+  def acos(f:Float):Function0[Float] = (() => math.acos(f.toDouble).toFloat)
+  def asin(f:Float):Function0[Float] = (() => math.asin(f.toDouble).toFloat)
+  def atan(f:Float):Function0[Float] = (() => math.atan(f.toDouble).toFloat)
+  def acos(fn:Function0[Float]):Function0[Float] = (() => math.acos(fn()).toFloat)
+  def asin(fn:Function0[Float]):Function0[Float] = (() => math.asin(fn()).toFloat)
+  def atan(fn:Function0[Float]):Function0[Float] = (() => math.atan(fn()).toFloat)
+  
   object set { 
     def apply(fn:Function0[Unit]) = lines = lines += SetDef(fn)
   }
@@ -389,6 +415,9 @@ class ScalaGL {
         case f:Float => {
       	  lines = lines += CubeDef(s._1, f, s._3)
         }
+        case fn:Function0[Float] => {
+      	  lines = lines += CubeDeff(s._1, fn, s._3)
+        }
       }
     }
   }
@@ -401,6 +430,9 @@ class ScalaGL {
         }
         case f:Float => {
       	  lines = lines += SphereDef(s._1, f, s._3)
+        }
+        case fn:Function0[Float] => {
+      	  lines = lines += SphereDeff(s._1, fn, s._3)
         }
       }
     }
@@ -464,6 +496,12 @@ class ScalaGL {
         drawCube(position, scale, color)
         executeLine(index + 1)
       }
+      case CubeDeff(p: Symbol, s: Function0[Float], c: Symbol) => {
+        var position = assignments.tuple(p)
+        var color = assignments.tuple(c)
+        drawCube(position, s(), color)
+        executeLine(index + 1)
+      }
       case SphereDef(p: Symbol, r: Float, c: Symbol) => {
         var position = assignments.tuple(p)
         var color = assignments.tuple(c)
@@ -475,6 +513,12 @@ class ScalaGL {
         var color = assignments.tuple(c)
         var scale = assignments.float(r)
         drawSphere(position, scale, color)
+        executeLine(index + 1)
+      }
+      case SphereDeff(p: Symbol, r: Function0[Float], c: Symbol) => {
+        var position = assignments.tuple(p)
+        var color = assignments.tuple(c)
+        drawSphere(position, r(), color)
         executeLine(index + 1)
       }
       case TriangleDef(p1: Symbol, p2: Symbol, p3: Symbol, c: Symbol) => {
@@ -549,12 +593,12 @@ class ScalaGL {
   var lines = scala.collection.mutable.ArrayBuffer.empty[glLine]
   var labels = HashMap[String, Int]()
 
-  
-  //implicit def char2BuildLine(i: Int) = BuildLine(i)
   implicit def symbol2Assignment(sym:Symbol) = Assignment(sym)
   
+  implicit def float2BinaryFn(f:Float) = BinaryFn(() => f)
   implicit def symbol2BinaryFn(s:Symbol) = BinaryFn(() => assignments.float(s))
   implicit def fnOfInt2BinaryFn(fn:Function0[Float]) = BinaryFn(fn)
+  implicit def float2MathFn(f:Float) = MathFn(() => f)
   implicit def symbol2MathFn(s:Symbol) = MathFn(() => assignments.float(s))
   implicit def fnOfFloat2MathFn(fn:Function0[Float]) = MathFn(fn)
 }

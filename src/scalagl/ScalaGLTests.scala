@@ -138,3 +138,60 @@ object drawTriFractal extends ScalaGL {
     fracSide(mid2, b, cforb, depth - 1)
   }
 }
+
+object boxSpiral extends ScalaGL {
+  override def drawScene() = {
+    import math.Pi
+    set ('depth := -1.0f)
+    label ("drawSpiral")
+      //drawSpiral(-2.0f to 2.0f, 1.0f, 0.0f, 0.01f)
+      
+    set ('t := 0.0f)
+    set ('dt := 0.015f)
+    set ('r1 := 1.0f)
+    set ('r2 := 0.0f)
+    label ("start")
+    set ('ratio := 't/(2.0f*Pi).toFloat)
+    set ('red := cos('t))
+    set ('blue := sin('t))
+    set ('x := cos('t)*(('r1*'ratio) + ('r2*('ratio - 1.0f))))
+    set ('y := sin('t)*(('r1*'ratio) + ('r2*('ratio - 1.0f))))
+    set ('z := 'depth*'ratio)
+    point ('p := ('x,'y,'z))
+    color ('c := ('red,'blue,'ratio))
+    cube ('p, 'dt * 2, 'c)
+    set ('t := 't + 'dt)
+    check ('t <= (2.0f*Pi).toFloat) goto "start"
+    set ('depth := 'depth + 'dt)
+    check ('depth <= 1.0f) goto "drawSpiral"
+    start
+    
+  }
+  
+  // arg1: depth
+  // arg2: starting radius
+  // arg3: ending radius
+  // arg4: time step
+  def drawSpiral(d:Float, r1:Float, r2:Float, dt:Float) = {
+    import math.Pi
+    set ('t := 0.0f)
+    set ('dt := dt)
+    set ('r1 := r1)
+    set ('r2 := r2)
+    set ('d := d)
+    set ('v := 1.0f)
+    label ("start")
+    set ('ratio := 't/(2.0f*Pi).toFloat)
+    set ('red := cos('t))
+    set ('blue := sin('t))
+    set ('x := cos('t)*(('r1*'ratio) + ('r2*('v - 'ratio))))
+    set ('y := sin('t)*(('r1*'ratio) + ('r2*('v - 'ratio))))
+    set ('z := 'd*'ratio)
+    point ('p := ('x,'y,'z))
+    color ('c := ('red,'blue,'ratio))
+    cube ('p, 0.1f, 'c)
+    set ('t := 't + 'dt)
+    check ('t <= (2.0f*Pi).toFloat) goto "start"
+    start
+  }
+}
