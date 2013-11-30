@@ -32,16 +32,16 @@ class ScalaGL {
   var drawAxes = true
   var finished = false
   
-  var rotation = 0.0f
+  var rotation = 3.0f * Math.PI.toFloat / 2.0f
   var uprotation = Math.PI.toFloat / 2.0f
   var look_x = 0.0f
   var look_y = 0.0f
   var look_z = 0.0f
   
-  var eye_x = 0.0f
+  var eye_x = -2.0f
   var eye_y = 0.0f
-  var eye_z = 1.5f
-  var delta = 1.0f;  
+  var eye_z = 0.0f
+  var delta = 2.0f;  
   
   
   
@@ -294,7 +294,7 @@ class ScalaGL {
   
   case class IfBuilder(fn:Function0[Boolean]) {
     def goto(label:String) = {
-      lines = lines :+ CheckDef(fn, label)
+      lines = lines += CheckDef(fn, label)
     }
   }
   
@@ -354,40 +354,40 @@ class ScalaGL {
 
   object printfloat {
     def apply(s: Symbol) = {
-      lines = lines :+ PrintFloatDef(s)
+      lines = lines += PrintFloatDef(s)
     }
   }
   
   object set { 
-    def apply(fn:Function0[Unit]) = lines = lines :+ SetDef(fn)
+    def apply(fn:Function0[Unit]) = lines = lines += SetDef(fn)
   }
     
   object color {
-    def apply(fn:Function0[Unit]) = lines = lines :+ ColorDef(fn)
+    def apply(fn:Function0[Unit]) = lines = lines += ColorDef(fn)
   }
     
   object point {
-    def apply(fn:Function0[Unit]) = lines = lines :+ PointDef(fn)
+    def apply(fn:Function0[Unit]) = lines = lines += PointDef(fn)
   }
     
   object printcolor {
     def apply(s: Symbol) = {
-      lines = lines :+ PrintTuple(s)
+      lines = lines += PrintTuple(s)
     }
   }
   object printpoint {
     def apply(s: Symbol) = {
-      lines = lines :+ PrintTuple(s)
+      lines = lines += PrintTuple(s)
     }
   }
   object cube {
     def apply(s:(Symbol, Any, Symbol)) = {
       s._2 match {
         case c:Symbol => {
-      	  lines = lines :+ CubeDefs(s._1, c, s._3)
+      	  lines = lines += CubeDefs(s._1, c, s._3)
         }
         case f:Float => {
-      	  lines = lines :+ CubeDef(s._1, f, s._3)
+      	  lines = lines += CubeDef(s._1, f, s._3)
         }
       }
     }
@@ -397,10 +397,10 @@ class ScalaGL {
     def apply(s:(Symbol, Any, Symbol)) = {
       s._2 match {
         case c:Symbol => {
-      	  lines = lines :+ SphereDefs(s._1, c, s._3)
+      	  lines = lines += SphereDefs(s._1, c, s._3)
         }
         case f:Float => {
-      	  lines = lines :+ SphereDef(s._1, f, s._3)
+      	  lines = lines += SphereDef(s._1, f, s._3)
         }
       }
     }
@@ -408,13 +408,13 @@ class ScalaGL {
   
   object triangle {
     def apply(s:(Symbol, Symbol, Symbol, Symbol)) = {
-      lines = lines :+ TriangleDef(s._1, s._2, s._3, s._4)
+      lines = lines += TriangleDef(s._1, s._2, s._3, s._4)
     }
   }
   
   object label {
     def apply(s:String) = {
-      lines = lines :+ LabelDef(s)
+      lines = lines += LabelDef(s)
       labels(s) = lines.length
     }
   }
@@ -546,7 +546,7 @@ class ScalaGL {
   }
   
   var assignments = new Assignments[Float];
-  var lines = new Array[glLine](0)
+  var lines = scala.collection.mutable.ArrayBuffer.empty[glLine]
   var labels = HashMap[String, Int]()
 
   
