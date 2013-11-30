@@ -364,13 +364,25 @@ class ScalaGL {
       lines = lines += PrintFloatDef(s)
     }
   }
-  
+
+  def pow(b:Symbol, p:Symbol):Function0[Float] = (() => math.pow(assignments.float(b), assignments.float(p)).toFloat)
+  def pow(b:Symbol, p:Float):Function0[Float] = (() => math.pow(assignments.float(b), p).toFloat)
+  def pow(b:Symbol, p:Function0[Float]):Function0[Float] = (() => math.pow(assignments.float(b), p()).toFloat)
+  def pow(b:Float, p:Symbol):Function0[Float] = (() => math.pow(b, assignments.float(p)).toFloat)
+  def pow(b:Float, p:Float):Function0[Float] = (() => math.pow(b, p).toFloat)
+  def pow(b:Float, p:Function0[Float]):Function0[Float] = (() => math.pow(b, p()).toFloat)
+  def pow(b:Function0[Float], p:Symbol):Function0[Float] = (() => math.pow(b(), assignments.float(p)).toFloat)
+  def pow(b:Function0[Float], p:Float):Function0[Float] = (() => math.pow(b(), p).toFloat)
+  def pow(b:Function0[Float], p:Function0[Float]):Function0[Float] = (() => math.pow(b(), p()).toFloat)
+  def sqrt(s:Symbol):Function0[Float] = (() => math.sqrt(assignments.float(s).toDouble).toFloat)
   def cos(s:Symbol):Function0[Float] = (() => math.cos(assignments.float(s).toDouble).toFloat)
   def sin(s:Symbol):Function0[Float] = (() => math.sin(assignments.float(s).toDouble).toFloat)
   def tan(s:Symbol):Function0[Float] = (() => math.tan(assignments.float(s).toDouble).toFloat)
-  def cos(f:Float):Function0[Float] = (() => math.cos(f.toDouble).toFloat)
-  def sin(f:Float):Function0[Float] = (() => math.sin(f.toDouble).toFloat)
-  def tan(f:Float):Function0[Float] = (() => math.tan(f.toDouble).toFloat)
+  def sqrt(f:Float):Function0[Float] = (() => math.sqrt(f).toFloat)
+  def cos(f:Float):Function0[Float] = (() => math.cos(f).toFloat)
+  def sin(f:Float):Function0[Float] = (() => math.sin(f).toFloat)
+  def tan(f:Float):Function0[Float] = (() => math.tan(f).toFloat)
+  def sqrt(fn:Function0[Float]):Function0[Float] = (() => math.sqrt(fn()).toFloat)
   def cos(fn:Function0[Float]):Function0[Float] = (() => math.cos(fn()).toFloat)
   def sin(fn:Function0[Float]):Function0[Float] = (() => math.sin(fn()).toFloat)
   def tan(fn:Function0[Float]):Function0[Float] = (() => math.tan(fn()).toFloat)
@@ -383,6 +395,9 @@ class ScalaGL {
   def acos(fn:Function0[Float]):Function0[Float] = (() => math.acos(fn()).toFloat)
   def asin(fn:Function0[Float]):Function0[Float] = (() => math.asin(fn()).toFloat)
   def atan(fn:Function0[Float]):Function0[Float] = (() => math.atan(fn()).toFloat)
+  def abs(s:Symbol):Function0[Float] = (() => math.abs(assignments.float(s)))
+  def abs(f:Float):Function0[Float] = (() => math.abs(f))
+  def abs(fn:Function0[Float]):Function0[Float] = (() => math.abs(fn()))
   
   object set { 
     def apply(fn:Function0[Unit]) = lines = lines += SetDef(fn)
@@ -560,6 +575,7 @@ class ScalaGL {
 	      v1 = assignments.float(s);
 	    }
 	    case f:Float => v1 = f
+	    case fn:Function0[Float] => v1 = fn()
 	    case _ => v1 = 0.0f
 	  }
 	  v._2 match {
@@ -567,6 +583,7 @@ class ScalaGL {
 	      v2 = assignments.float(s);
 	    }
 	    case f:Float => v2 = f
+	    case fn:Function0[Float] => v2 = fn()
 	    case _ => v2 = 0.0f
 	  }
 	  v._3 match {
@@ -574,6 +591,7 @@ class ScalaGL {
 	      v3 = assignments.float(s);
 	    }
 	    case f:Float => v3 = f
+	    case fn:Function0[Float] => v3 = fn()
 	    case _ => v3 = 0.0f
 	  }
 	  return (v1, v2, v3)

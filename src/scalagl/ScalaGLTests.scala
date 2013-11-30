@@ -50,6 +50,8 @@ object variableTest extends ScalaGL {
     printcolor ('c1)
     point ('p2 := ('notAPottyWord, 0.0f, 1.0f))
     printpoint ('p2)
+    point ('p3 := (1.0f * 3.0f, 2.0f, 6.0f*'notAPottyWord + 2.0f))
+    printpoint ('p3)
     start
   }
 }
@@ -65,6 +67,22 @@ object mathTest extends ScalaGL {
     printfloat ('a)
     set ('a := ('a + .2f) / 0.6f)
     printfloat ('a)
+    set ('a := sqrt(4.0f))
+    printfloat ('a)
+    set ('a := sqrt('a))
+    printfloat ('a)
+    set ('a := sqrt(pow('a, 2)))
+    printfloat('a)
+    set ('a := pow(2.0f, 3.0f))
+    printfloat('a)
+    set ('b := 2.0f)
+    set ('a := pow('b, 3.0f))
+    printfloat('a)
+    set ('c := 3.0f)
+    set ('a := pow('b, 'c))
+    printfloat('a)
+    set ('a := pow(('b - 3)*2, 'c*2 - 1))
+    printfloat('a)
     start
   }
 }
@@ -77,7 +95,14 @@ object logicTest extends ScalaGL {
     printfloat ('a)
     set ('a := 'a + .1f)
     check ('a <= 'limit) goto "start_loop"
-    println("Finished!")
+    println("Finished Loop 1!")
+    
+    set ('a := 1000.0f)
+    label ("loop2")
+    printfloat('a)
+    set ('a := sqrt('a))
+    check (abs('a - sqrt('a)) >= 1.000001f ) goto "loop2"
+    println("Finished Loop 2!")
     start
   }
 }
@@ -144,8 +169,6 @@ object boxSpiral extends ScalaGL {
     import math.Pi
     set ('depth := -1.0f)
     label ("drawSpiral")
-      //drawSpiral(-2.0f to 2.0f, 1.0f, 0.0f, 0.01f)
-      
     set ('t := 0.0f)
     set ('dt := 0.015f)
     set ('r1 := 1.0f)
@@ -166,32 +189,5 @@ object boxSpiral extends ScalaGL {
     check ('depth <= 1.0f) goto "drawSpiral"
     start
     
-  }
-  
-  // arg1: depth
-  // arg2: starting radius
-  // arg3: ending radius
-  // arg4: time step
-  def drawSpiral(d:Float, r1:Float, r2:Float, dt:Float) = {
-    import math.Pi
-    set ('t := 0.0f)
-    set ('dt := dt)
-    set ('r1 := r1)
-    set ('r2 := r2)
-    set ('d := d)
-    set ('v := 1.0f)
-    label ("start")
-    set ('ratio := 't/(2.0f*Pi).toFloat)
-    set ('red := cos('t))
-    set ('blue := sin('t))
-    set ('x := cos('t)*(('r1*'ratio) + ('r2*('v - 'ratio))))
-    set ('y := sin('t)*(('r1*'ratio) + ('r2*('v - 'ratio))))
-    set ('z := 'd*'ratio)
-    point ('p := ('x,'y,'z))
-    color ('c := ('red,'blue,'ratio))
-    cube ('p, 0.1f, 'c)
-    set ('t := 't + 'dt)
-    check ('t <= (2.0f*Pi).toFloat) goto "start"
-    start
   }
 }
