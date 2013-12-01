@@ -124,19 +124,22 @@ object drawBoxen extends ScalaGL {
 
 object drawTriFractal extends ScalaGL {
   override def drawScene() = {
-    triFractal((-0.5f, 0.0f, 0.0f), (0.0f, .707f, 0.0f), (.5f, 0.0f, 0.0f), 3)
+    set('a := (-5f, -3.535f, 0.0f))
+    set('a := (0f, 3.535f, 0.0f))
+    set('a := (5f, -3.535f, 0.0f))
+    triFractal((-5f, -3.535f, 0.0f), (0.0f, 3.535f, 0.0f), (5.f, -3.535f, 0.0f), 5)
   }
   
   def triFractal(p1: (Float, Float, Float), p2: (Float, Float, Float), p3: (Float, Float, Float), depth: Int) {
     point ('p1 := (p1._1, p1._2, p1._3))
 	point ('p2 := (p2._1, p2._2, p2._3))
 	point ('p3 := (p3._1, p3._2, p3._3))
-	color ('color := (1.0f, 0.0f, 0.0f))
+	color ('color := (0.6f, 0.6f, 1.0f))
 	triangle ('p1, 'p2, 'p3, 'color)
-	start
 	fracSide(p1, p2, p3, depth)
     fracSide(p2, p3, p1, depth)
     fracSide(p3, p1, p2, depth)
+	start
   }
   // line segment from a to b with other point on the triangle c
   // did this to avoid work drawing fractal under triangle that is already drawn
@@ -152,9 +155,8 @@ object drawTriFractal extends ScalaGL {
     point ('p1 := (mid1._1, mid1._2, mid1._3))
 	point ('p2 := (newmid._1, newmid._2, newmid._3))
 	point ('p3 := (mid2._1, mid2._2, mid2._3))
-	color ('color := (1.0f, 0.0f, 0.0f))
+	color ('color := ((depth / 10.0f), (depth / 10.0f), 1.0f))
 	triangle ('p1, 'p2, 'p3, 'color)
-	start
     var cfora = ((2 * a._1 + c._1)/3.0f, (2 * a._2 + c._2)/3.0f, (2 * a._3 + c._3)/3.0f)
     var cforb = ((2 * b._1 + c._1)/3.0f, (2 * b._2 + c._2)/3.0f, (2 * b._3 + c._3)/3.0f)
     fracSide(a, mid1, cfora, depth - 1)
@@ -205,8 +207,8 @@ object functionDraw extends ScalaGL {
   def func(x:Symbol, y:Symbol) : Function0[Float] = {
     set ('x2 := pow(x, 2))
     set ('y2 := pow(y, 2))
-    return sqrt('x2 + 'y2) + 3.0f * cos(sqrt('x2 + 'y2))
-	//return 2.0f * sin(x) * pow(Math.E.toFloat, (-1.0f * ('x2 + 'y2)))
+    //return sqrt('x2 + 'y2) + 3.0f * cos(sqrt('x2 + 'y2))
+	return 2.0f * sin(x) * pow(Math.E.toFloat, (-1.0f * ('x2 + 'y2)))
   }
 }
 
